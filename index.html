@@ -29,11 +29,19 @@
   .emoji-line {
     display: block;
   }
+  .subtext {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #777;
+    letter-spacing: 0.01em;
+    margin-top: 0.75rem;
+  }
   .cursor {
     display: inline-block;
     width: 1px;
     margin-left: 2px;
-    background: #1a1a1a;
+    background: currentColor;
     animation: blink 0.8s step-end infinite;
   }
   @keyframes blink {
@@ -45,26 +53,46 @@
 <body>
   <h1 id="text"><span class="cursor">&nbsp;</span></h1>
   <script>
-    const line1 = "hi diffaaaaaaaaaaaay";
+    const line1 = "hi diffaaaaaaaaaaaay2";
     const emoji = "😘";
+    const line2 = "I knew you wouldn't be able to help yourself opening";
     const el = document.getElementById("text");
     const cursor = el.querySelector(".cursor");
-    const chars = Array.from(line1);
+    const chars1 = Array.from(line1);
     let i = 0;
-    function type() {
-      if (i < chars.length) {
-        cursor.insertAdjacentText("beforebegin", chars[i]);
+    function typeLine1() {
+      if (i < chars1.length) {
+        cursor.insertAdjacentText("beforebegin", chars1[i]);
         i++;
-        setTimeout(type, 80);
+        setTimeout(typeLine1, 80);
       } else {
         cursor.remove();
         const emojiSpan = document.createElement("span");
         emojiSpan.className = "emoji-line";
         emojiSpan.textContent = emoji;
         el.appendChild(emojiSpan);
+        setTimeout(startLine2, 500);
       }
     }
-    type();
+    function startLine2() {
+      const subEl = document.createElement("span");
+      subEl.className = "subtext";
+      el.appendChild(subEl);
+      subEl.appendChild(cursor);
+      const chars2 = Array.from(line2);
+      let j = 0;
+      function typeLine2() {
+        if (j < chars2.length) {
+          cursor.insertAdjacentText("beforebegin", chars2[j]);
+          j++;
+          setTimeout(typeLine2, 40);
+        } else {
+          cursor.remove();
+        }
+      }
+      typeLine2();
+    }
+    typeLine1();
   </script>
 </body>
 </html>
