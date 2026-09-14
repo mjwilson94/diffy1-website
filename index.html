@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>diffy1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
   html, body {
     height: 100%;
@@ -14,17 +17,42 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   h1 {
-    font-size: 2rem;
-    font-weight: 500;
+    font-size: 2.25rem;
+    font-weight: 700;
     color: #1a1a1a;
     letter-spacing: 0.02em;
+  }
+  .cursor {
+    display: inline-block;
+    width: 1px;
+    margin-left: 2px;
+    background: #1a1a1a;
+    animation: blink 0.8s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
   }
 </style>
 </head>
 <body>
-  <h1>diffy1</h1>
+  <h1 id="text"><span class="cursor">&nbsp;</span></h1>
+  <script>
+    const message = "hi diffaaaaaaaaaaaay 😘";
+    const el = document.getElementById("text");
+    const cursor = el.querySelector(".cursor");
+    let i = 0;
+    function type() {
+      if (i < message.length) {
+        cursor.insertAdjacentText("beforebegin", message[i]);
+        i++;
+        setTimeout(type, 80);
+      }
+    }
+    type();
+  </script>
 </body>
 </html>
