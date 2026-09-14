@@ -66,7 +66,6 @@
   <script>
     const line1 = "hi diffaaaaaaaaay2";
     const emoji = "😘";
-    const line2 = "I knew you wouldn't be able to help yourself opening";
     const line3 = "\"puss puss\"";
     const line4 = "CYA";
     const el = document.getElementById("text");
@@ -84,27 +83,8 @@
         emojiSpan.className = "emoji-line";
         emojiSpan.textContent = emoji;
         el.appendChild(emojiSpan);
-        setTimeout(startLine2, 500);
+        setTimeout(startLine3, 1000);
       }
-    }
-    function startLine2() {
-      const subEl = document.createElement("span");
-      subEl.className = "subtext";
-      el.appendChild(subEl);
-      subEl.appendChild(cursor);
-      const chars2 = Array.from(line2);
-      let j = 0;
-      function typeLine2() {
-        if (j < chars2.length) {
-          cursor.insertAdjacentText("beforebegin", chars2[j]);
-          j++;
-          setTimeout(typeLine2, 40);
-        } else {
-          cursor.remove();
-          setTimeout(startLine3, 1000);
-        }
-      }
-      typeLine2();
     }
     function startLine3() {
       const subEl = document.createElement("span");
