@@ -24,6 +24,10 @@
     font-weight: 700;
     color: #1a1a1a;
     letter-spacing: 0.02em;
+    text-align: center;
+  }
+  .emoji-line {
+    display: block;
   }
   .cursor {
     display: inline-block;
@@ -41,15 +45,23 @@
 <body>
   <h1 id="text"><span class="cursor">&nbsp;</span></h1>
   <script>
-    const message = "hi diffaaaaaaaaaaaay 😘";
+    const line1 = "hi diffaaaaaaaaaaaay";
+    const emoji = "😘";
     const el = document.getElementById("text");
     const cursor = el.querySelector(".cursor");
+    const chars = Array.from(line1);
     let i = 0;
     function type() {
-      if (i < message.length) {
-        cursor.insertAdjacentText("beforebegin", message[i]);
+      if (i < chars.length) {
+        cursor.insertAdjacentText("beforebegin", chars[i]);
         i++;
         setTimeout(type, 80);
+      } else {
+        cursor.remove();
+        const emojiSpan = document.createElement("span");
+        emojiSpan.className = "emoji-line";
+        emojiSpan.textContent = emoji;
+        el.appendChild(emojiSpan);
       }
     }
     type();
