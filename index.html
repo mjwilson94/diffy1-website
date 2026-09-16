@@ -93,6 +93,46 @@
     0%, 100% { right: -3rem; transform: scaleX(-1); }
     50% { right: 1rem; transform: scaleX(-1); }
   }
+  #text.clickable {
+    cursor: pointer;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+  .tap-hint {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #aaa;
+    margin-top: 0.5rem;
+    opacity: 0;
+    animation: fade-in 0.4s ease forwards;
+  }
+  @keyframes fade-in {
+    to { opacity: 1; }
+  }
+  .falling-banana {
+    position: fixed;
+    top: -3rem;
+    font-size: var(--size);
+    left: var(--left);
+    z-index: 20;
+    pointer-events: none;
+    animation: fall var(--fall-duration) linear forwards;
+    animation-delay: var(--fall-delay);
+  }
+  @keyframes fall {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(115vh) rotate(var(--spin));
+      opacity: 1;
+    }
+  }
 </style>
 </head>
 <body>
@@ -157,10 +197,33 @@
           setTimeout(typeLine4, 80);
         } else {
           cursor.remove();
+          el.classList.add("clickable");
+          const hint = document.createElement("span");
+          hint.className = "tap-hint";
+          hint.textContent = "psst... tap it 👆";
+          el.appendChild(hint);
+          el.addEventListener("click", bananaWaterfall);
         }
       }
       typeLine4();
     }
+
+    function bananaWaterfall() {
+      const count = 60;
+      for (let n = 0; n < count; n++) {
+        const b = document.createElement("span");
+        b.className = "falling-banana";
+        b.textContent = "🍌";
+        b.style.setProperty("--left", `${Math.random() * 100}vw`);
+        b.style.setProperty("--size", `${1.5 + Math.random() * 2}rem`);
+        b.style.setProperty("--fall-duration", `${1.8 + Math.random() * 1.5}s`);
+        b.style.setProperty("--fall-delay", `${Math.random() * 1.2}s`);
+        b.style.setProperty("--spin", `${Math.random() > 0.5 ? 360 : -360}deg`);
+        document.body.appendChild(b);
+        b.addEventListener("animationend", () => b.remove());
+      }
+    }
+
     typeLine1();
   </script>
 </body>
