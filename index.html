@@ -69,9 +69,35 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
   }
+  .banana {
+    position: fixed;
+    font-size: 2.5rem;
+    top: var(--top);
+    z-index: 10;
+    pointer-events: none;
+    animation: poke-left var(--duration) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+  .banana.right {
+    animation-name: poke-right;
+  }
+  @keyframes poke-left {
+    0%, 100% { left: -3rem; transform: scaleX(1); }
+    50% { left: 1rem; transform: scaleX(1); }
+  }
+  @keyframes poke-right {
+    0%, 100% { right: -3rem; transform: scaleX(-1); }
+    50% { right: 1rem; transform: scaleX(-1); }
+  }
 </style>
 </head>
 <body>
+  <span class="banana" style="--top: 15%; --duration: 3.5s; --delay: 0s;">🍌</span>
+  <span class="banana right" style="--top: 30%; --duration: 4.2s; --delay: 0.6s;">🍌</span>
+  <span class="banana" style="--top: 55%; --duration: 3.8s; --delay: 1.2s;">🍌</span>
+  <span class="banana right" style="--top: 68%; --duration: 4.6s; --delay: 0.3s;">🍌</span>
+  <span class="banana" style="--top: 82%; --duration: 4s; --delay: 1.8s;">🍌</span>
+  <span class="banana right" style="--top: 10%; --duration: 3.6s; --delay: 2.1s;">🍌</span>
   <h1 id="text"><span class="cursor">&nbsp;</span></h1>
   <script>
     const line1 = "hi diffaaaaaaaaay2";
