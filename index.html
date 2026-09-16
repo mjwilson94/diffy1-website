@@ -73,12 +73,16 @@
     position: fixed;
     font-size: 2.5rem;
     top: var(--top);
+    left: -3rem;
     z-index: 10;
     pointer-events: none;
     animation: poke-left var(--duration) ease-in-out infinite;
     animation-delay: var(--delay);
+    animation-fill-mode: backwards;
   }
   .banana.right {
+    left: auto;
+    right: -3rem;
     animation-name: poke-right;
   }
   @keyframes poke-left {
