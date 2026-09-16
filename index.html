@@ -133,6 +133,27 @@
       opacity: 1;
     }
   }
+  #poke-btn {
+    margin-top: 2.5rem;
+    padding: 0.65rem 1.5rem;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fafaf8;
+    background: #1a1a1a;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  #poke-btn:hover {
+    transform: scale(1.05);
+  }
+  #poke-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+    transform: none;
+  }
 </style>
 </head>
 <body>
@@ -143,9 +164,24 @@
   <span class="banana" style="--top: 82%; --duration: 4s; --delay: 1.8s;">🍌</span>
   <span class="banana right" style="--top: 10%; --duration: 3.6s; --delay: 2.1s;">🍌</span>
   <h1 id="text"><span class="cursor">&nbsp;</span></h1>
+  <button id="poke-btn" type="button">👉 poke diffaaaay1</button>
   <script>
     const WORKER_URL = "https://diffy1-poke-worker.mjwilson94.workers.dev";
     fetch(`${WORKER_URL}/visit`, { method: "POST" }).catch(() => {});
+
+    const pokeBtn = document.getElementById("poke-btn");
+    const POKE_COOLDOWN_MS = 3000;
+    let pokeCooldown = false;
+    pokeBtn.addEventListener("click", () => {
+      if (pokeCooldown) return;
+      pokeCooldown = true;
+      pokeBtn.disabled = true;
+      fetch(`${WORKER_URL}/poke`, { method: "POST" }).catch(() => {});
+      setTimeout(() => {
+        pokeBtn.disabled = false;
+        pokeCooldown = false;
+      }, POKE_COOLDOWN_MS);
+    });
 
     const line1 = "hi diffaaaaaaaaay2";
     const emoji = "😘";
