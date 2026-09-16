@@ -1,4 +1,3 @@
-const NTFY_TOPIC = "diffy1-poke-ba37946a6014";
 const ALLOWED_ORIGINS = new Set([
   "https://diffy1.com",
   "https://www.diffy1.com",
@@ -21,6 +20,30 @@ function json(data, status, origin) {
   });
 }
 
+async function sendPushover(env, { title, message, url, url_title }) {
+  const form = new URLSearchParams({
+    token: env.PUSHOVER_API_TOKEN,
+    user: env.PUSHOVER_USER_KEY,
+    title,
+    message,
+  });
+  if (url) form.set("url", url);
+  if (url_title) form.set("url_title", url_title);
+
+  try {
+    const res = await fetch("https://api.pushover.net/1/messages.json", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    });
+    if (!res.ok) {
+      console.log("pushover response not ok", res.status, await res.text());
+    }
+  } catch (err) {
+    console.log("pushover fetch threw", err.message);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -37,25 +60,29 @@ export default {
       await env.POKES.put(id, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 });
 
       const replyUrl = `https://diffy1.com/reply.html?id=${id}`;
-      try {
-        const ntfyRes = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${env.NTFY_TOKEN}`,
-            "Title": "You got poked!",
-            "Click": replyUrl,
-            "Actions": `view, Reply, ${replyUrl}`,
-          },
-          body: `Someone poked you on diffy1.com 👉 Tap to reply.`,
-        });
-        if (!ntfyRes.ok) {
-          console.log("ntfy response not ok", ntfyRes.status, await ntfyRes.text());
-        }
-      } catch (err) {
-        console.log("ntfy fetch threw", err.message);
-      }
+      await sendPushover(env, {
+        title: "You got poked!",
+        message: "Someone poked you on diffy1.com 👉 Tap to reply.",
+        url: replyUrl,
+        url_title: "Reply",
+      });
 
       return json({ id }, 200, origin);
+    }
+
+    // POST /visit -> notify phone of a site visit (rate-limited per IP)
+    if (request.method === "POST" && url.pathname === "/visit") {
+      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+      const rateLimitKey = `visit-rl:${ip}`;
+      const alreadyNotified = await env.POKES.get(rateLimitKey);
+      if (!alreadyNotified) {
+        await env.POKES.put(rateLimitKey, "1", { expirationTtl: 60 * 30 });
+        await sendPushover(env, {
+          title: "New visitor",
+          message: "Someone's on diffy1.com 👀",
+        });
+      }
+      return json({ ok: true }, 200, origin);
     }
 
     // GET /status/:id -> poll for a reply
