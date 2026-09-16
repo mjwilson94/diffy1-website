@@ -1,0 +1,81 @@
+const NTFY_TOPIC = "diffy1-poke-ba37946a6014";
+const ALLOWED_ORIGINS = new Set([
+  "https://diffy1.com",
+  "https://www.diffy1.com",
+  "https://diffy1-website.pages.dev",
+]);
+
+function corsHeaders(origin) {
+  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "https://diffy1.com";
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
+
+function json(data, status, origin) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders(origin) },
+  });
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const origin = request.headers.get("Origin") || "";
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders(origin) });
+    }
+
+    // POST /poke -> create a new poke, notify phone
+    if (request.method === "POST" && url.pathname === "/poke") {
+      const id = crypto.randomUUID();
+      const record = { status: "pending", response: null, createdAt: Date.now() };
+      await env.POKES.put(id, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 });
+
+      const replyUrl = `https://diffy1.com/reply.html?id=${id}`;
+      await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+        method: "POST",
+        headers: {
+          "Title": "You got poked!",
+          "Click": replyUrl,
+          "Actions": `view, Reply, ${replyUrl}`,
+        },
+        body: `Someone poked you on diffy1.com 👉 Tap to reply.`,
+      });
+
+      return json({ id }, 200, origin);
+    }
+
+    // GET /status/:id -> poll for a reply
+    const statusMatch = url.pathname.match(/^\/status\/([a-f0-9-]+)$/);
+    if (request.method === "GET" && statusMatch) {
+      const id = statusMatch[1];
+      const raw = await env.POKES.get(id);
+      if (!raw) return json({ error: "not_found" }, 404, origin);
+      return json(JSON.parse(raw), 200, origin);
+    }
+
+    // POST /reply/:id -> submit a reply
+    const replyMatch = url.pathname.match(/^\/reply\/([a-f0-9-]+)$/);
+    if (request.method === "POST" && replyMatch) {
+      const id = replyMatch[1];
+      const raw = await env.POKES.get(id);
+      if (!raw) return json({ error: "not_found" }, 404, origin);
+      const record = JSON.parse(raw);
+      const body = await request.json().catch(() => ({}));
+      const response = (body.response || "").toString().slice(0, 500);
+      if (!response.trim()) return json({ error: "empty_response" }, 400, origin);
+      record.status = "answered";
+      record.response = response;
+      record.respondedAt = Date.now();
+      await env.POKES.put(id, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 });
+      return json({ ok: true }, 200, origin);
+    }
+
+    return json({ error: "not_found" }, 404, origin);
+  },
+};

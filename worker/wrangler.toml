@@ -1,0 +1,7 @@
+name = "diffy1-poke-worker"
+main = "src/index.js"
+compatibility_date = "2024-09-01"
+
+[[kv_namespaces]]
+binding = "POKES"
+id = "f13c4c421f7a45c293b40784bf71a8b3"
