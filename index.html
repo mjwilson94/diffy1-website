@@ -168,6 +168,22 @@
     font-weight: 500;
     color: #bbb;
   }
+  #success-flash {
+    position: fixed;
+    inset: 0;
+    background: #22c55e;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 30;
+  }
+  #success-flash.flash {
+    animation: flash-fade 0.7s ease-out;
+  }
+  @keyframes flash-fade {
+    0% { opacity: 0; }
+    20% { opacity: 0.35; }
+    100% { opacity: 0; }
+  }
 </style>
 </head>
 <body>
@@ -182,15 +198,23 @@
     <button id="poke-btn" type="button">👀 poke diffaaaay1</button>
     <span id="poke-count"></span>
   </div>
+  <div id="success-flash"></div>
   <script>
     const WORKER_URL = "https://diffy1-poke-worker.mjwilson94.workers.dev";
     fetch(`${WORKER_URL}/visit`, { method: "POST" }).catch(() => {});
 
     const pokeBtn = document.getElementById("poke-btn");
     const pokeCountEl = document.getElementById("poke-count");
+    const successFlash = document.getElementById("success-flash");
 
     function renderCount(count) {
-      pokeCountEl.textContent = `poked ${count} time${count === 1 ? "" : "s"}`;
+      pokeCountEl.textContent = `poked diffy1 ${count} time${count === 1 ? "" : "s"}`;
+    }
+
+    function showSuccessFlash() {
+      successFlash.classList.remove("flash");
+      void successFlash.offsetWidth;
+      successFlash.classList.add("flash");
     }
 
     fetch(`${WORKER_URL}/count`)
@@ -208,6 +232,7 @@
         .then((res) => res.json())
         .then((data) => {
           if (typeof data.count === "number") renderCount(data.count);
+          showSuccessFlash();
         })
         .catch(() => {});
       setTimeout(() => {
