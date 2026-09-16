@@ -145,14 +145,7 @@
   <h1 id="text"><span class="cursor">&nbsp;</span></h1>
   <script>
     const WORKER_URL = "https://diffy1-poke-worker.mjwilson94.workers.dev";
-    try {
-      if (!sessionStorage.getItem("visitNotified")) {
-        sessionStorage.setItem("visitNotified", "1");
-        fetch(`${WORKER_URL}/visit`, { method: "POST" }).catch(() => {});
-      }
-    } catch (e) {
-      // sessionStorage unavailable (e.g. sandboxed preview) - skip silently
-    }
+    fetch(`${WORKER_URL}/visit`, { method: "POST" }).catch(() => {});
 
     const line1 = "hi diffaaaaaaaaay2";
     const emoji = "😘";

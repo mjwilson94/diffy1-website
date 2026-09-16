@@ -70,18 +70,12 @@ export default {
       return json({ id }, 200, origin);
     }
 
-    // POST /visit -> notify phone of a site visit (rate-limited per IP)
+    // POST /visit -> notify phone of a site visit
     if (request.method === "POST" && url.pathname === "/visit") {
-      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-      const rateLimitKey = `visit-rl:${ip}`;
-      const alreadyNotified = await env.POKES.get(rateLimitKey);
-      if (!alreadyNotified) {
-        await env.POKES.put(rateLimitKey, "1", { expirationTtl: 60 * 30 });
-        await sendPushover(env, {
-          title: "New visitor",
-          message: "Someone's on diffy1.com 👀",
-        });
-      }
+      await sendPushover(env, {
+        title: "New visitor",
+        message: "Someone's on diffy1.com 👀",
+      });
       return json({ ok: true }, 200, origin);
     }
 
