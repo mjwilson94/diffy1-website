@@ -62,7 +62,7 @@ export default {
       const replyUrl = `https://diffy1.com/reply.html?id=${id}`;
       await sendPushover(env, {
         title: "You got poked!",
-        message: "Someone poked you on diffy1.com 👉 Tap to reply.",
+        message: "diffy2 poked you 👉 Tap to reply.",
         url: replyUrl,
         url_title: "Reply",
       });
@@ -74,7 +74,7 @@ export default {
     if (request.method === "POST" && url.pathname === "/visit") {
       await sendPushover(env, {
         title: "New visitor",
-        message: "Someone's on diffy1.com 👀",
+        message: "diffy2 is on diffy1.com 👀",
       });
       return json({ ok: true }, 200, origin);
     }
