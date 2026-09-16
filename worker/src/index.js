@@ -71,7 +71,7 @@ export default {
         url_title: "Reply",
       });
 
-      return json({ id }, 200, origin);
+      return json({ id, count: newCount }, 200, origin);
     }
 
     // GET /count -> total poke tally

@@ -133,8 +133,16 @@
       opacity: 1;
     }
   }
+  #poke-wrap {
+    position: fixed;
+    bottom: 2rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
   #poke-btn {
-    margin-top: 2.5rem;
     padding: 0.65rem 1.5rem;
     font-family: inherit;
     font-size: 1rem;
@@ -154,6 +162,12 @@
     cursor: default;
     transform: none;
   }
+  #poke-count {
+    margin-top: 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #bbb;
+  }
 </style>
 </head>
 <body>
@@ -164,19 +178,38 @@
   <span class="banana" style="--top: 82%; --duration: 4s; --delay: 1.8s;">🍌</span>
   <span class="banana right" style="--top: 10%; --duration: 3.6s; --delay: 2.1s;">🍌</span>
   <h1 id="text"><span class="cursor">&nbsp;</span></h1>
-  <button id="poke-btn" type="button">👉 poke diffaaaay1</button>
+  <div id="poke-wrap">
+    <button id="poke-btn" type="button">👀 poke diffaaaay1</button>
+    <span id="poke-count"></span>
+  </div>
   <script>
     const WORKER_URL = "https://diffy1-poke-worker.mjwilson94.workers.dev";
     fetch(`${WORKER_URL}/visit`, { method: "POST" }).catch(() => {});
 
     const pokeBtn = document.getElementById("poke-btn");
+    const pokeCountEl = document.getElementById("poke-count");
+
+    function renderCount(count) {
+      pokeCountEl.textContent = `poked ${count} time${count === 1 ? "" : "s"}`;
+    }
+
+    fetch(`${WORKER_URL}/count`)
+      .then((res) => res.json())
+      .then((data) => renderCount(data.count))
+      .catch(() => {});
+
     const POKE_COOLDOWN_MS = 3000;
     let pokeCooldown = false;
     pokeBtn.addEventListener("click", () => {
       if (pokeCooldown) return;
       pokeCooldown = true;
       pokeBtn.disabled = true;
-      fetch(`${WORKER_URL}/poke`, { method: "POST" }).catch(() => {});
+      fetch(`${WORKER_URL}/poke`, { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (typeof data.count === "number") renderCount(data.count);
+        })
+        .catch(() => {});
       setTimeout(() => {
         pokeBtn.disabled = false;
         pokeCooldown = false;
