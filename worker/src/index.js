@@ -37,15 +37,23 @@ export default {
       await env.POKES.put(id, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 });
 
       const replyUrl = `https://diffy1.com/reply.html?id=${id}`;
-      await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
-        method: "POST",
-        headers: {
-          "Title": "You got poked!",
-          "Click": replyUrl,
-          "Actions": `view, Reply, ${replyUrl}`,
-        },
-        body: `Someone poked you on diffy1.com 👉 Tap to reply.`,
-      });
+      try {
+        const ntfyRes = await fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${env.NTFY_TOKEN}`,
+            "Title": "You got poked!",
+            "Click": replyUrl,
+            "Actions": `view, Reply, ${replyUrl}`,
+          },
+          body: `Someone poked you on diffy1.com 👉 Tap to reply.`,
+        });
+        if (!ntfyRes.ok) {
+          console.log("ntfy response not ok", ntfyRes.status, await ntfyRes.text());
+        }
+      } catch (err) {
+        console.log("ntfy fetch threw", err.message);
+      }
 
       return json({ id }, 200, origin);
     }
