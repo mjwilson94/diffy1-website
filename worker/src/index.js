@@ -59,15 +59,25 @@ export default {
       const record = { status: "pending", response: null, createdAt: Date.now() };
       await env.POKES.put(id, JSON.stringify(record), { expirationTtl: 60 * 60 * 24 });
 
+      const currentCount = parseInt((await env.POKES.get("poke_count")) || "0", 10);
+      const newCount = currentCount + 1;
+      await env.POKES.put("poke_count", String(newCount));
+
       const replyUrl = `https://diffy1.com/reply.html?id=${id}`;
       await sendPushover(env, {
         title: "You got poked!",
-        message: "diffy2 poked you 👉 Tap to reply.",
+        message: `diffy2 poked you 👉 (poke #${newCount}) Tap to reply.`,
         url: replyUrl,
         url_title: "Reply",
       });
 
       return json({ id }, 200, origin);
+    }
+
+    // GET /count -> total poke tally
+    if (request.method === "GET" && url.pathname === "/count") {
+      const count = parseInt((await env.POKES.get("poke_count")) || "0", 10);
+      return json({ count }, 200, origin);
     }
 
     // POST /visit -> notify phone of a site visit
