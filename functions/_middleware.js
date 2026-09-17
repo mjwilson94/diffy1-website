@@ -97,7 +97,7 @@ export async function onRequest({ request, next }) {
         status: 302,
         headers: {
           "Location": "/",
-          "Set-Cookie": `${COOKIE_NAME}=${validToken}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`,
+          "Set-Cookie": `${COOKIE_NAME}=${validToken}; Path=/; HttpOnly; Secure; SameSite=Lax`,
         },
       });
     }
