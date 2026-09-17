@@ -250,6 +250,15 @@
     transform: rotate(var(--rot)) scale(1);
     animation: pop-in 0.3s ease;
   }
+  .post-it-from {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #3a3a3a;
+    opacity: 0.65;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
   .post-it-date {
     margin-top: 0.4rem;
     font-size: 0.65rem;
@@ -277,8 +286,8 @@
   </div>
   <button id="note-btn" type="button">📝 leave a note</button>
   <div id="note-form">
+    <span id="note-from" data-value="diffy2">from: diffy2</span>
     <textarea id="note-text" maxlength="200" rows="3" placeholder="leave a note..." data-hj-allow></textarea>
-    <span id="note-from" data-value="diffy2">from: diffy2 (double-tap to change)</span>
     <button id="note-submit" type="button">stick it</button>
   </div>
   <script>
@@ -335,7 +344,7 @@
     noteFrom.addEventListener("dblclick", () => {
       const next = noteFrom.dataset.value === "diffy2" ? "diffy1" : "diffy2";
       noteFrom.dataset.value = next;
-      noteFrom.textContent = `from: ${next} (double-tap to change)`;
+      noteFrom.textContent = `from: ${next}`;
     });
     const POST_IT_COLORS = ["#fff59d", "#f8bbd0", "#bbdefb", "#c8e6c9", "#ffe0b2"];
     const seenNoteIds = new Set();
@@ -382,6 +391,11 @@
       noteEl.style.left = pos.left;
       noteEl.style.background = POST_IT_COLORS[Math.floor(Math.random() * POST_IT_COLORS.length)];
 
+      const fromEl = document.createElement("div");
+      fromEl.className = "post-it-from";
+      fromEl.textContent = `From: ${note.from || "diffy2"}`;
+      noteEl.appendChild(fromEl);
+
       const textEl = document.createElement("div");
       textEl.textContent = note.text;
       noteEl.appendChild(textEl);
@@ -389,11 +403,10 @@
       if (note.createdAt) {
         const dateEl = document.createElement("div");
         dateEl.className = "post-it-date";
-        const dateStr = new Date(note.createdAt).toLocaleDateString(undefined, {
+        dateEl.textContent = new Date(note.createdAt).toLocaleDateString(undefined, {
           month: "short",
           day: "numeric",
         });
-        dateEl.textContent = `${dateStr} · ${note.from || "diffy2"}`;
         noteEl.appendChild(dateEl);
       }
 
@@ -429,7 +442,7 @@
         .then(() => {
           noteText.value = "";
           noteFrom.dataset.value = "diffy2";
-          noteFrom.textContent = "from: diffy2 (double-tap to change)";
+          noteFrom.textContent = "from: diffy2";
           noteForm.classList.remove("open");
           loadNotes();
         })
