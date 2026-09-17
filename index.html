@@ -172,6 +172,79 @@
     font-weight: 500;
     color: #bbb;
   }
+  #note-btn {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 999px;
+    cursor: pointer;
+    z-index: 40;
+  }
+  #note-form {
+    position: fixed;
+    top: 4rem;
+    right: 1.25rem;
+    z-index: 40;
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+  }
+  #note-form.open {
+    display: flex;
+  }
+  #note-text {
+    width: 220px;
+    max-width: 60vw;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.6rem;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    resize: none;
+    box-sizing: border-box;
+  }
+  #note-submit {
+    padding: 0.45rem 1rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fafaf8;
+    background: #1a1a1a;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  #note-submit:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .post-it {
+    position: fixed;
+    width: 130px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #3a3a3a;
+    box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.15);
+    border-radius: 2px;
+    z-index: 15;
+    pointer-events: none;
+    word-wrap: break-word;
+    transform: rotate(var(--rot));
+    animation: pop-in 0.3s ease;
+  }
+  @keyframes pop-in {
+    from { transform: scale(0.5) rotate(var(--rot)); opacity: 0; }
+    to { transform: scale(1) rotate(var(--rot)); opacity: 1; }
+  }
 </style>
 </head>
 <body>
@@ -185,6 +258,11 @@
   <div id="poke-wrap">
     <button id="poke-btn" type="button">👀 poke diffaaaay1</button>
     <span id="poke-count"></span>
+  </div>
+  <button id="note-btn" type="button">📝 leave a note</button>
+  <div id="note-form">
+    <textarea id="note-text" maxlength="200" rows="3" placeholder="leave a note..."></textarea>
+    <button id="note-submit" type="button">stick it</button>
   </div>
   <script>
     const WORKER_URL = "https://diffy1-poke-worker.mjwilson94.workers.dev";
@@ -229,6 +307,63 @@
         pokeBtn.disabled = false;
         pokeCooldown = false;
       }, POKE_COOLDOWN_MS);
+    });
+
+    const noteBtn = document.getElementById("note-btn");
+    const noteForm = document.getElementById("note-form");
+    const noteText = document.getElementById("note-text");
+    const noteSubmit = document.getElementById("note-submit");
+    const POST_IT_COLORS = ["#fff59d", "#f8bbd0", "#bbdefb", "#c8e6c9", "#ffe0b2"];
+    const seenNoteIds = new Set();
+
+    function renderNote(note) {
+      if (seenNoteIds.has(note.id)) return;
+      seenNoteIds.add(note.id);
+      const noteEl = document.createElement("div");
+      noteEl.className = "post-it";
+      const rot = (Math.random() * 16 - 8).toFixed(1);
+      noteEl.style.setProperty("--rot", `${rot}deg`);
+      noteEl.style.top = `${5 + Math.random() * 80}%`;
+      noteEl.style.left = `${5 + Math.random() * 80}%`;
+      noteEl.style.background = POST_IT_COLORS[Math.floor(Math.random() * POST_IT_COLORS.length)];
+      noteEl.textContent = note.text;
+      document.body.appendChild(noteEl);
+    }
+
+    function loadNotes() {
+      fetch(`${WORKER_URL}/notes`)
+        .then((res) => res.json())
+        .then((data) => {
+          (data.notes || []).forEach(renderNote);
+        })
+        .catch(() => {});
+    }
+    loadNotes();
+    setInterval(loadNotes, 6000);
+
+    noteBtn.addEventListener("click", () => {
+      noteForm.classList.toggle("open");
+      if (noteForm.classList.contains("open")) noteText.focus();
+    });
+
+    noteSubmit.addEventListener("click", () => {
+      const text = noteText.value.trim();
+      if (!text) return;
+      noteSubmit.disabled = true;
+      fetch(`${WORKER_URL}/note`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      })
+        .then(() => {
+          noteText.value = "";
+          noteForm.classList.remove("open");
+          loadNotes();
+        })
+        .catch(() => {})
+        .finally(() => {
+          noteSubmit.disabled = false;
+        });
     });
 
     const line1 = "hi diffaaaaaaaaay2";

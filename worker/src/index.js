@@ -115,6 +115,37 @@ export default {
       return json({ ok: true }, 200, origin);
     }
 
+    // POST /note -> leave a note, notify phone
+    if (request.method === "POST" && url.pathname === "/note") {
+      const body = await request.json().catch(() => ({}));
+      const text = (body.text || "").toString().trim().slice(0, 200);
+      if (!text) return json({ error: "empty_note" }, 400, origin);
+
+      const key = `note:${String(Date.now()).padStart(16, "0")}-${crypto.randomUUID()}`;
+      await env.POKES.put(key, JSON.stringify({ text, createdAt: Date.now() }));
+
+      await sendPushover(env, {
+        title: "New note left 📝",
+        message: `diffy2 left a note: "${text}"`,
+      });
+
+      return json({ ok: true }, 200, origin);
+    }
+
+    // GET /notes -> list recent notes
+    if (request.method === "GET" && url.pathname === "/notes") {
+      const list = await env.POKES.list({ prefix: "note:", limit: 100 });
+      const notes = await Promise.all(
+        list.keys.map(async (k) => {
+          const raw = await env.POKES.get(k.name);
+          if (!raw) return null;
+          const data = JSON.parse(raw);
+          return { id: k.name, text: data.text, createdAt: data.createdAt };
+        })
+      );
+      return json({ notes: notes.filter(Boolean) }, 200, origin);
+    }
+
     return json({ error: "not_found" }, 404, origin);
   },
 };
