@@ -360,25 +360,41 @@
       return [
         { left: w - 340, right: w, top: 0, bottom: 180 }, // leave-a-note button + form
         { left: w / 2 - 180, right: w / 2 + 180, top: h - 150, bottom: h }, // poke button + count
-        { left: w / 2 - Math.min(320, w * 0.45), right: w / 2 + Math.min(320, w * 0.45), top: h / 2 - 150, bottom: h / 2 + 150 }, // greeting text, emoji, CYA, tap hint
+        { left: w / 2 - Math.min(220, w * 0.32), right: w / 2 + Math.min(220, w * 0.32), top: h / 2 - 130, bottom: h / 2 + 130 }, // greeting text, emoji, CYA, tap hint
       ];
+    }
+
+    function isSafe(topPct, leftPct, noteW, noteH, zones) {
+      const top = (topPct / 100) * window.innerHeight;
+      const left = (leftPct / 100) * window.innerWidth;
+      const rect = { left, right: left + noteW, top, bottom: top + noteH };
+      return !zones.some((z) => rectsOverlap(rect, z));
     }
 
     function pickNotePosition() {
       const noteW = 130;
       const noteH = 90;
       const zones = getExclusionZones();
-      for (let attempt = 0; attempt < 30; attempt++) {
+      for (let attempt = 0; attempt < 40; attempt++) {
         const topPct = 5 + Math.random() * 80;
         const leftPct = 5 + Math.random() * 80;
-        const top = (topPct / 100) * window.innerHeight;
-        const left = (leftPct / 100) * window.innerWidth;
-        const rect = { left, right: left + noteW, top, bottom: top + noteH };
-        if (!zones.some((z) => rectsOverlap(rect, z))) {
+        if (isSafe(topPct, leftPct, noteW, noteH, zones)) {
           return { top: `${topPct}%`, left: `${leftPct}%` };
         }
       }
-      return { top: "45%", left: "5%" };
+      // deterministic fallback: scan corner/edge candidates for a safe spot
+      const candidates = [
+        [4, 4], [4, 96 - (noteW / window.innerWidth) * 100],
+        [96 - (noteH / window.innerHeight) * 100, 4],
+        [96 - (noteH / window.innerHeight) * 100, 96 - (noteW / window.innerWidth) * 100],
+        [4, 40], [40, 4], [60, 4], [4, 60],
+      ];
+      for (const [topPct, leftPct] of candidates) {
+        if (isSafe(topPct, leftPct, noteW, noteH, zones)) {
+          return { top: `${topPct}%`, left: `${leftPct}%` };
+        }
+      }
+      return { top: "4%", left: "4%" };
     }
 
     function renderNote(note) {
