@@ -120,9 +120,10 @@ export default {
       const body = await request.json().catch(() => ({}));
       const text = (body.text || "").toString().trim().slice(0, 200);
       if (!text) return json({ error: "empty_note" }, 400, origin);
+      const from = body.from === "diffy1" ? "diffy1" : "diffy2";
 
       const id = crypto.randomUUID();
-      await env.POKES.put(`note:${id}`, JSON.stringify({ text, createdAt: Date.now() }));
+      await env.POKES.put(`note:${id}`, JSON.stringify({ text, createdAt: Date.now(), from }));
 
       const indexRaw = await env.POKES.get("notes_index");
       const index = indexRaw ? JSON.parse(indexRaw) : [];
@@ -132,7 +133,7 @@ export default {
 
       await sendPushover(env, {
         title: "New note left 📝",
-        message: `diffy2 left a note: "${text}"`,
+        message: `${from} left a note: "${text}"`,
       });
 
       return json({ ok: true }, 200, origin);
@@ -147,7 +148,7 @@ export default {
           const raw = await env.POKES.get(`note:${id}`);
           if (!raw) return null;
           const data = JSON.parse(raw);
-          return { id, text: data.text, createdAt: data.createdAt };
+          return { id, text: data.text, createdAt: data.createdAt, from: data.from || "diffy2" };
         })
       );
       return json({ notes: notes.filter(Boolean) }, 200, origin);

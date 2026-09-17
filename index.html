@@ -226,6 +226,14 @@
     opacity: 0.5;
     cursor: default;
   }
+  #note-from {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #999;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
   .post-it {
     position: fixed;
     width: 130px;
@@ -270,6 +278,7 @@
   <button id="note-btn" type="button">📝 leave a note</button>
   <div id="note-form">
     <textarea id="note-text" maxlength="200" rows="3" placeholder="leave a note..." data-hj-allow></textarea>
+    <span id="note-from" data-value="diffy2">from: diffy2 (double-tap to change)</span>
     <button id="note-submit" type="button">stick it</button>
   </div>
   <script>
@@ -321,6 +330,13 @@
     const noteForm = document.getElementById("note-form");
     const noteText = document.getElementById("note-text");
     const noteSubmit = document.getElementById("note-submit");
+    const noteFrom = document.getElementById("note-from");
+
+    noteFrom.addEventListener("dblclick", () => {
+      const next = noteFrom.dataset.value === "diffy2" ? "diffy1" : "diffy2";
+      noteFrom.dataset.value = next;
+      noteFrom.textContent = `from: ${next} (double-tap to change)`;
+    });
     const POST_IT_COLORS = ["#fff59d", "#f8bbd0", "#bbdefb", "#c8e6c9", "#ffe0b2"];
     const seenNoteIds = new Set();
 
@@ -373,10 +389,11 @@
       if (note.createdAt) {
         const dateEl = document.createElement("div");
         dateEl.className = "post-it-date";
-        dateEl.textContent = new Date(note.createdAt).toLocaleDateString(undefined, {
+        const dateStr = new Date(note.createdAt).toLocaleDateString(undefined, {
           month: "short",
           day: "numeric",
         });
+        dateEl.textContent = `${dateStr} · ${note.from || "diffy2"}`;
         noteEl.appendChild(dateEl);
       }
 
@@ -402,14 +419,17 @@
     noteSubmit.addEventListener("click", () => {
       const text = noteText.value.trim();
       if (!text) return;
+      const from = noteFrom.dataset.value === "diffy1" ? "diffy1" : "diffy2";
       noteSubmit.disabled = true;
       fetch(`${WORKER_URL}/note`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, from }),
       })
         .then(() => {
           noteText.value = "";
+          noteFrom.dataset.value = "diffy2";
+          noteFrom.textContent = "from: diffy2 (double-tap to change)";
           noteForm.classList.remove("open");
           loadNotes();
         })
