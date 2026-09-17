@@ -238,12 +238,13 @@
     z-index: 15;
     pointer-events: none;
     word-wrap: break-word;
-    transform: rotate(var(--rot));
+    opacity: 1;
+    transform: rotate(var(--rot)) scale(1);
     animation: pop-in 0.3s ease;
   }
   @keyframes pop-in {
-    from { transform: scale(0.5) rotate(var(--rot)); opacity: 0; }
-    to { transform: scale(1) rotate(var(--rot)); opacity: 1; }
+    from { transform: rotate(var(--rot)) scale(0.5); }
+    to { transform: rotate(var(--rot)) scale(1); }
   }
 </style>
 </head>
