@@ -121,8 +121,14 @@ export default {
       const text = (body.text || "").toString().trim().slice(0, 200);
       if (!text) return json({ error: "empty_note" }, 400, origin);
 
-      const key = `note:${String(Date.now()).padStart(16, "0")}-${crypto.randomUUID()}`;
-      await env.POKES.put(key, JSON.stringify({ text, createdAt: Date.now() }));
+      const id = crypto.randomUUID();
+      await env.POKES.put(`note:${id}`, JSON.stringify({ text, createdAt: Date.now() }));
+
+      const indexRaw = await env.POKES.get("notes_index");
+      const index = indexRaw ? JSON.parse(indexRaw) : [];
+      index.push(id);
+      while (index.length > 200) index.shift();
+      await env.POKES.put("notes_index", JSON.stringify(index));
 
       await sendPushover(env, {
         title: "New note left 📝",
@@ -134,13 +140,14 @@ export default {
 
     // GET /notes -> list recent notes
     if (request.method === "GET" && url.pathname === "/notes") {
-      const list = await env.POKES.list({ prefix: "note:", limit: 100 });
+      const indexRaw = await env.POKES.get("notes_index");
+      const index = indexRaw ? JSON.parse(indexRaw) : [];
       const notes = await Promise.all(
-        list.keys.map(async (k) => {
-          const raw = await env.POKES.get(k.name);
+        index.map(async (id) => {
+          const raw = await env.POKES.get(`note:${id}`);
           if (!raw) return null;
           const data = JSON.parse(raw);
-          return { id: k.name, text: data.text, createdAt: data.createdAt };
+          return { id, text: data.text, createdAt: data.createdAt };
         })
       );
       return json({ notes: notes.filter(Boolean) }, 200, origin);
