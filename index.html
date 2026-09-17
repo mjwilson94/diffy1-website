@@ -324,15 +324,46 @@
     const POST_IT_COLORS = ["#fff59d", "#f8bbd0", "#bbdefb", "#c8e6c9", "#ffe0b2"];
     const seenNoteIds = new Set();
 
+    function rectsOverlap(a, b) {
+      return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+    }
+
+    function getExclusionZones() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      return [
+        { left: w - 340, right: w, top: 0, bottom: 180 }, // leave-a-note button + form
+        { left: w / 2 - 180, right: w / 2 + 180, top: h - 150, bottom: h }, // poke button + count
+      ];
+    }
+
+    function pickNotePosition() {
+      const noteW = 130;
+      const noteH = 90;
+      const zones = getExclusionZones();
+      for (let attempt = 0; attempt < 30; attempt++) {
+        const topPct = 5 + Math.random() * 80;
+        const leftPct = 5 + Math.random() * 80;
+        const top = (topPct / 100) * window.innerHeight;
+        const left = (leftPct / 100) * window.innerWidth;
+        const rect = { left, right: left + noteW, top, bottom: top + noteH };
+        if (!zones.some((z) => rectsOverlap(rect, z))) {
+          return { top: `${topPct}%`, left: `${leftPct}%` };
+        }
+      }
+      return { top: "45%", left: "5%" };
+    }
+
     function renderNote(note) {
       if (seenNoteIds.has(note.id)) return;
       seenNoteIds.add(note.id);
       const noteEl = document.createElement("div");
       noteEl.className = "post-it";
       const rot = (Math.random() * 16 - 8).toFixed(1);
+      const pos = pickNotePosition();
       noteEl.style.setProperty("--rot", `${rot}deg`);
-      noteEl.style.top = `${5 + Math.random() * 80}%`;
-      noteEl.style.left = `${5 + Math.random() * 80}%`;
+      noteEl.style.top = pos.top;
+      noteEl.style.left = pos.left;
       noteEl.style.background = POST_IT_COLORS[Math.floor(Math.random() * POST_IT_COLORS.length)];
 
       const textEl = document.createElement("div");
